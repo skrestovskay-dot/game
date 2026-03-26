@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Leo and the Amazon Secret | Text Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            background: linear-gradient(135deg, #1a472a 0%, #0e2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background: #2c2418;
+            background-image: radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            border: 1px solid #d4a373;
+        }
+
+        .game-header {
+            background: #1f1a10;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #d4a373;
+        }
+
+        .game-header h1 {
+            color: #ffd966;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0 #5a3e1b;
+            letter-spacing: 2px;
+        }
+
+        .game-header p {
+            color: #c9b37c;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px;
+            background: #1e2a1a;
+            border-bottom: 1px solid #5a6e3a;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2a3520;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: #c9b37c;
+        }
+
+        .stat-value {
+            color: #ffd966;
+            font-weight: bold;
+        }
+
+        .energy-bar, .wisdom-bar {
+            width: 100px;
+            height: 8px;
+            background: #3a2a1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: #e67e22;
+            width: 100%;
+            transition: width 0.3s;
+        }
+
+        .wisdom-fill {
+            height: 100%;
+            background: #f1c40f;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .game-main {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .location-name {
+            font-size: 1.4rem;
+            color: #ffd966;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #d4a373;
+            display: inline-block;
+        }
+
+        .description {
+            background: #2c2418;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            line-height: 1.6;
+            color: #f0e6c5;
+            border-left: 4px solid #d4a373;
+            font-size: 1rem;
+        }
+
+        .actions-section {
+            margin: 20px 0;
+        }
+
+        .actions-title {
+            color: #c9b37c;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: #3a2e22;
+            border: 1px solid #6b4e2e;
+            color: #f0e6c5;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #5e3e2a;
+            transform: translateY(-1px);
+            border-color: #d4a373;
+        }
+
+        .inventory-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #4a3a2a;
+        }
+
+        .inventory-title {
+            color: #c9b37c;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .inventory-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .inventory-item {
+            background: #2a3520;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #ffd966;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .inventory-item:hover {
+            background: #5e3e2a;
+        }
+
+        .message-log {
+            margin-top: 20px;
+            background: #1e1a12;
+            border-radius: 12px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .message {
+            padding: 5px 0;
+            border-bottom: 1px solid #3a2e22;
+            color: #d4c5a5;
+        }
+
+        .message.system {
+            color: #ffd966;
+        }
+
+        .message.success {
+            color: #6fbf4c;
+        }
+
+        .message.error {
+            color: #e67e22;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .control-btn {
+            background: #2a3520;
+            border: 1px solid #5a6e3a;
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: #c9b37c;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #5e3e2a;
+            color: #ffd966;
+        }
+
+        .new-game-btn {
+            background: #d4a373;
+            color: #1f1a10;
+            font-weight: bold;
+        }
+
+        .new-game-btn:hover {
+            background: #ffd966;
+        }
+
+        .message-log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .message-log::-webkit-scrollbar-track {
+            background: #2c2418;
+        }
+
+        .message-log::-webkit-scrollbar-thumb {
+            background: #d4a373;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .stats-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+    <div class="game-header">
+        <h1>🏺 LEO & THE AMAZON SECRET 🗿</h1>
+        <p>An Interactive Text Adventure</p>
+    </div>
+    
+    <div class="stats-panel">
+        <div class="stat">
+            <span class="stat-label">❤️ Energy:</span>
+            <div class="energy-bar">
+                <div class="energy-fill" id="energyFill"></div>
+            </div>
+            <span class="stat-value" id="energyValue">100</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">🧠 Understanding:</span>
+            <div class="wisdom-bar">
+                <div class="wisdom-fill" id="wisdomFill"></div>
+            </div>
+            <span class="stat-value" id="wisdomValue">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">🐒 Friendship:</span>
+            <span class="stat-value" id="friendshipValue">❌</span>
+        </div>
+    </div>
+    
+    <div class="game-main">
+        <div class="location-name" id="locationName">Archaeologist Camp</div>
+        <div class="description" id="description"></div>
+        
+        <div class="actions-section">
+            <div class="actions-title">📌 AVAILABLE ACTIONS</div>
+            <div class="action-buttons" id="actionButtons"></div>
+        </div>
+        
+        <div class="inventory-section" id="inventorySection">
+            <div class="inventory-title">🎒 INVENTORY</div>
+            <div class="inventory-items" id="inventoryItems"></div>
+        </div>
+        
+        <div class="message-log" id="messageLog">
+            <div class="message system">✨ Welcome, Leo! Your adventure in the Amazon jungle begins...</div>
+        </div>
+        
+        <div class="control-buttons">
+            <button class="control-btn" id="statusBtn">📊 Status</button>
+            <button class="control-btn" id="saveBtn">💾 Save Game</button>
+            <button class="control-btn" id="loadBtn">📀 Load Game</button>
+            <button class="control-btn new-game-btn" id="newGameBtn">🔄 New Game</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============= GAME DATA =============
+    const locations = {
+        camp: {
+            name: "🏕️ Archaeologist Camp",
+            desc: "Your base camp. Tents are set up, equipment boxes are stacked, and a campfire crackles softly. The team has gone to search for the ancient temple, but you decided to follow your own path.",
+            connections: { "into the jungle": "jungle_path", "to the river": "river" },
+            actions: ["check equipment"]
+        },
+        jungle_path: {
+            name: "🌿 Jungle Trail",
+            desc: "Wet leaves rustle under your feet. Sunlight pierces through the dense canopy. In the distance, you hear monkeys calling and birds singing.",
+            connections: { "back to camp": "camp", "deeper into jungle": "ancient_gate", "to the river": "river" },
+            actions: ["listen carefully"]
+        },
+        river: {
+            name: "💧 Forest Stream",
+            desc: "Clear water flows over a rocky bed. It's cool and peaceful here. You notice monkeys coming to drink.",
+            connections: { "back to trail": "jungle_path", "follow the stream": "waterfall" },
+            actions: ["drink water"]
+        },
+        waterfall: {
+            name: "💦 Waterfall",
+            desc: "A majestic waterfall cascades down a high cliff. Rainbows dance in the mist. The surrounding walls are covered with strange symbols...",
+            connections: { "back to stream": "river" },
+            actions: ["examine symbols"]
+        },
+        ancient_gate: {
+            name: "🗿 Ancient Stone Door",
+            desc: "A massive stone door covered in vines stands before you. Mysterious symbols are carved into its surface. A small monkey sits on a branch nearby, watching you carefully.",
+            connections: { "back to trail": "jungle_path" },
+            actions: ["examine door", "talk to monkey", "press the symbol"]
+        },
+        temple_entrance: {
+            name: "🏛️ Temple Entrance",
+            desc: "The door slowly opened, revealing a passage into the darkness. Ancient power pulses from within. The air is filled with the scent of centuries-old dust and secrets.",
+            connections: { "back to door": "ancient_gate", "enter the hall": "temple_hall" },
+            actions: []
+        },
+        temple_hall: {
+            name: "✨ Crystal Chamber",
+            desc: "A vast hall opens before you. In the center, on a stone pedestal, floats a crystal that radiates dazzling golden light. It pulses in rhythm with your heartbeat.",
+            connections: { "go outside": "temple_entrance" },
+            actions: ["photograph crystal", "touch the crystal", "study the walls", "talk to friend"]
+        }
+    };
+    
+    // Game state
+    let gameState = {
+        energy: 100,
+        understanding: 0,
+        friendship: false,
+        inventory: ["Camera"],
+        currentLocation: "camp",
+        gateOpened: false,
+        monkeyTalked: false,
+        enteredTemple: false,
+        gameEnded: false,
+        ending: null
+    };
+    
+    // Item descriptions
+    const itemDescriptions = {
+        "Camera": "A reliable old camera for photographing artifacts",
+        "Friendship Token": "A small obsidian monkey figurine",
+        "Flashlight": "A camping flashlight for dark places",
+        "Map": "An old jungle map drawn on palm leaf"
+    };
+    
+    // Add message to log
+    function addMessage(text, type = "system") {
+        const log = document.getElementById("messageLog");
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${type}`;
+        msgDiv.textContent = text;
+        log.appendChild(msgDiv);
+        log.scrollTop = log.scrollHeight;
+        
+        while (log.children.length > 30) {
+            log.removeChild(log.firstChild);
+        }
+    }
+    
+    // Update UI
+    function updateUI() {
+        document.getElementById("energyValue").textContent = gameState.energy;
+        document.getElementById("wisdomValue").textContent = gameState.understanding;
+        document.getElementById("friendshipValue").textContent = gameState.friendship ? "✅" : "❌";
+        
+        const energyPercent = gameState.energy;
+        const wisdomPercent = gameState.understanding;
+        document.getElementById("energyFill").style.width = `${energyPercent}%`;
+        document.getElementById("wisdomFill").style.width = `${wisdomPercent}%`;
+        
+        const loc = locations[gameState.currentLocation];
+        if (loc) {
+            document.getElementById("locationName").textContent = loc.name;
+            document.getElementById("description").textContent = loc.desc;
+        }
+        
+        // Update inventory
+        const inventoryDiv = document.getElementById("inventoryItems");
+        if (gameState.inventory.length === 0) {
+            inventoryDiv.innerHTML = '<span style="color: #6b5a3a;">empty</span>';
+        } else {
+            inventoryDiv.innerHTML = gameState.inventory.map(item => 
+                `<span class="inventory-item" data-item="${item}">📦 ${item}</span>`
+            ).join("");
+            
+            document.querySelectorAll(".inventory-item").forEach(el => {
+                el.addEventListener("click", () => {
+                    const item = el.dataset.item;
+                    addMessage(`📖 ${item}: ${itemDescriptions[item] || "An interesting item"}`, "system");
+                });
+            });
+        }
+        
+        updateActions();
+    }
+    
+    function updateActions() {
+        const actionsDiv = document.getElementById("actionButtons");
+        const loc = locations[gameState.currentLocation];
+        if (!loc) return;
+        
+        let actions = [];
+        
+        // Add movement options
+        for (const [dir, target] of Object.entries(loc.connections)) {
+            actions.push({ text: `🚶 ${dir}`, action: () => moveTo(target) });
+        }
+        
+        // Add location-specific actions
+        for (const action of loc.actions) {
+            actions.push({ text: getActionIcon(action) + " " + action, action: () => performAction(action) });
+        }
+        
+        // Standard actions
+        actions.push({ text: "🎒 Inventory", action: () => showInventory() });
+        actions.push({ text: "📊 Status", action: () => showStatus() });
+        
+        if (actions.length === 0) {
+            actionsDiv.innerHTML = '<span style="color: #6b5a3a;">No actions available</span>';
+            return;
+        }
+        
+        actionsDiv.innerHTML = actions.map((act, i) => 
+            `<button class="action-btn" data-action-index="${i}">${act.text}</button>`
+        ).join("");
+        
+        document.querySelectorAll(".action-btn").forEach((btn, idx) => {
+            btn.addEventListener("click", () => {
+                if (gameState.gameEnded) {
+                    addMessage("Game over. Please start a new game.", "error");
+                    return;
+                }
+                actions[idx].action();
+            });
+        });
+    }
+    
+    function getActionIcon(action) {
+        const icons = {
+            "check equipment": "🔍",
+            "listen carefully": "👂",
+            "drink water": "💧",
+            "examine symbols": "🔮",
+            "examine door": "🔍",
+            "talk to monkey": "🐒",
+            "press the symbol": "👆",
+            "photograph crystal": "📸",
+            "touch the crystal": "✨",
+            "study the walls": "📜",
+            "talk to friend": "🐒"
+        };
+        return icons[action] || "⚡";
+    }
+    
+    function moveTo(locationId) {
+        if (locationId === "temple_hall" && !gameState.enteredTemple) {
+            gameState.enteredTemple = true;
+            addMessage("You enter the Crystal Chamber... The air vibrates with ancient magic.", "success");
+        }
+        gameState.currentLocation = locationId;
+        updateUI();
+        addMessage(`You go to ${locations[locationId].name}`, "system");
+        checkEndings();
+    }
+    
+    function performAction(action) {
+        switch(action) {
+            case "check equipment":
+                if (!gameState.inventory.includes("Camera")) {
+                    gameState.inventory.push("Camera");
+                    addMessage("You found a camera in your backpack! Now you can take photos.", "success");
+                } else {
+                    addMessage("Your camera is already with you.", "system");
+                }
+                break;
+                
+            case "listen carefully":
+                addMessage("You hear a strange metallic sound coming from deep within the jungle...", "system");
+                break;
+                
+            case "drink water":
+                if (gameState.energy < 100) {
+                    gameState.energy = Math.min(100, gameState.energy + 15);
+                    addMessage("You drink fresh water. Strength returns! +15 energy", "success");
+                } else {
+                    addMessage("You're full of energy. The water refreshes you.", "system");
+                }
+                updateUI();
+                break;
+                
+            case "examine symbols":
+                gameState.understanding = Math.min(100, gameState.understanding + 10);
+                addMessage("The symbols tell the story of an ancient civilization. +10 understanding", "success");
+                updateUI();
+                break;
+                
+            case "examine door":
+                if (gameState.inventory.includes("Camera")) {
+                    addMessage("You photograph the symbols on the door. The monkey poses for the picture!", "success");
+                    gameState.understanding = Math.min(100, gameState.understanding + 5);
+                } else {
+                    addMessage("The symbols look mysterious. Too bad you don't have a camera.", "system");
+                }
+                updateUI();
+                break;
+                
+            case "talk to monkey":
+                if (!gameState.monkeyTalked) {
+                    addMessage("The monkey looks at you intently, then points at one of the symbols on the door.", "system");
+                    gameState.monkeyTalked = true;
+                    gameState.friendship = true;
+                    updateUI();
+                } else {
+                    addMessage("The monkey jumps around you happily. You feel a connection.", "system");
+                }
+                break;
+                
+            case "press the symbol":
+                if (gameState.friendship || gameState.understanding >= 20) {
+                    if (!gameState.gateOpened) {
+                        addMessage("You press the symbol the monkey pointed to... The stone door slowly opens!", "success");
+                        gameState.gateOpened = true;
+                        locations.camp.connections["enter the temple"] = "temple_entrance";
+                        locations.ancient_gate.connections["enter the temple"] = "temple_entrance";
+                        addMessage("You can now enter the temple!", "success");
+                    } else {
+                        addMessage("The door is already open.", "system");
+                    }
+                } else {
+                    addMessage("You press the symbol, but nothing happens... Maybe you need the right symbol.", "error");
+                    gameState.energy = Math.max(0, gameState.energy - 5);
+                    updateUI();
+                }
+                break;
+                
+            case "photograph crystal":
+                if (gameState.inventory.includes("Camera")) {
+                    addMessage("You take a photo of the crystal! It pulses with golden light in the picture.", "success");
+                    gameState.understanding = Math.min(100, gameState.understanding + 10);
+                    updateUI();
+                } else {
+                    addMessage("You don't have a camera!", "error");
+                }
+                break;
+                
+            case "touch the crystal":
+                addMessage("You reach out and touch the crystal... A wave of warmth flows through you. You see visions of an ancient civilization!", "success");
+                gameState.understanding = Math.min(100, gameState.understanding + 30);
+                updateUI();
+                break;
+                
+            case "study the walls":
+                addMessage("The walls depict scenes of an ancient people living in harmony with nature.", "system");
+                gameState.understanding = Math.min(100, gameState.understanding + 15);
+                updateUI();
+                break;
+                
+            case "talk to friend":
+                if (!gameState.inventory.includes("Friendship Token")) {
+                    addMessage("The monkey gives you a small obsidian figurine! You are now friends forever.", "success");
+                    gameState.inventory.push("Friendship Token");
+                    gameState.friendship = true;
+                    updateUI();
+                } else {
+                    addMessage("The monkey sits happily beside you.", "system");
+                }
+                break;
+        }
+        checkEndings();
+    }
+    
+    function showInventory() {
+        if (gameState.inventory.length === 0) {
+            addMessage("Your backpack is empty.", "system");
+        } else {
+            addMessage(`🎒 Backpack contains: ${gameState.inventory.join(", ")}`, "system");
+        }
+    }
+    
+    function showStatus() {
+        addMessage(`❤️ Energy: ${gameState.energy}/100 | 🧠 Understanding: ${gameState.understanding}/100 | 🐒 Friendship: ${gameState.friendship ? "Yes" : "No"}`, "system");
+    }
+    
+    function checkEndings() {
+        if (gameState.gameEnded) return;
+        
+        // Good ending
+        if (gameState.understanding >= 70 && gameState.friendship) {
+            gameState.gameEnded = true;
+            gameState.ending = "good";
+            showEndingGood();
+            return;
+        }
+        
+        // Neutral ending
+        if (gameState.understanding >= 50) {
+            gameState.gameEnded = true;
+            gameState.ending = "neutral";
+            showEndingNeutral();
+            return;
+        }
+        
+        // Death by exhaustion
+        if (gameState.energy <= 0) {
+            gameState.gameEnded = true;
+            gameState.ending = "death";
+            showEndingDeath();
+            return;
+        }
+    }
+    
+    function showEndingGood() {
+        addMessage("", "system");
+        addMessage("═══════════════════════════════════════════════════", "success");
+        addMessage("🏆 THE TRUE TREASURE 🏆", "success");
+        addMessage("You stand before the radiant crystal with the monkey on your shoulder.", "success");
+        addMessage("The full wisdom of this place has been revealed to you. You understand this is the heart of the jungle, something that must be protected.", "success");
+        addMessage("\"I'm not dreaming,\" you whisper, smiling. The monkey nods in agreement.", "success");
+        addMessage("The true treasure was never gold—it was friendship, adventure, and responsibility to history.", "success");
+        addMessage("✨ ENDING: GUARDIAN OF THE JUNGLE ✨", "success");
+        addMessage("═══════════════════════════════════════════════════", "success");
+    }
+    
+    function showEndingNeutral() {
+        addMessage("", "system");
+        addMessage("═══════════════════════════════════════════════════", "system");
+        addMessage("📸 THE RETURN 📸", "system");
+        addMessage("You've made a discovery that will change your life. You photographed the crystal and returned to camp.", "system");
+        addMessage("The team is thrilled with your find. You'll become a famous archaeologist.", "system");
+        addMessage("But somewhere deep down, you feel you missed something important...", "system");
+        addMessage("ENDING: THE EXPLORER", "system");
+        addMessage("═══════════════════════════════════════════════════", "system");
+    }
+    
+    function showEndingDeath() {
+        addMessage("", "error");
+        addMessage("═══════════════════════════════════════════════════", "error");
+        addMessage("💀 EXHAUSTION 💀", "error");
+        addMessage("The jungle proved unforgiving. You wandered too long without rest...", "error");
+        addMessage("GAME OVER", "error");
+        addMessage("═══════════════════════════════════════════════════", "error");
+    }
+    
+    function saveGame() {
+        const saveData = {
+            energy: gameState.energy,
+            understanding: gameState.understanding,
+            friendship: gameState.friendship,
+            inventory: gameState.inventory,
+            currentLocation: gameState.currentLocation,
+            gateOpened: gameState.gateOpened,
+            monkeyTalked: gameState.monkeyTalked,
+            enteredTemple: gameState.enteredTemple,
+            gameEnded: gameState.gameEnded,
+            ending: gameState.ending
+        };
+        localStorage.setItem("leoGameSave", JSON.stringify(saveData));
+        addMessage("💾 Game saved!", "success");
+    }
+    
+    function loadGame() {
+        const saveData = localStorage.getItem("leoGameSave");
+        if (!saveData) {
+            addMessage("No saved game found.", "error");
+            return;
+        }
+        try {
+            const data = JSON.parse(saveData);
+            gameState = { ...gameState, ...data };
+            updateUI();
+            addMessage("📀 Game loaded!", "success");
+        } catch(e) {
+            addMessage("Error loading save file.", "error");
+        }
+    }
+    
+    function newGame() {
+        gameState = {
+            energy: 100,
+            understanding: 0,
+            friendship: false,
+            inventory: ["Camera"],
+            currentLocation: "camp",
+            gateOpened: false,
+            monkeyTalked: false,
+            enteredTemple: false,
+            gameEnded: false,
+            ending: null
+        };
+        updateUI();
+        const log = document.getElementById("messageLog");
+        log.innerHTML = '<div class="message system">✨ New game! Leo ventures into the Amazon jungle...</div>';
+        addMessage("You're back at camp. The adventure begins!", "success");
+    }
+    
+    // Initialize
+    document.getElementById("statusBtn").addEventListener("click", () => showStatus());
+    document.getElementById("saveBtn").addEventListener("click", () => saveGame());
+    document.getElementById("loadBtn").addEventListener("click", () => loadGame());
+    document.getElementById("newGameBtn").addEventListener("click", () => newGame());
+    
+    updateUI();
+</script>
+</body>
+</html>
